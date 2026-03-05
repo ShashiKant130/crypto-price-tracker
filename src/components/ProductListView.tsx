@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { ProductRow } from './ProductRow';
 import { PRODUCTS } from '../config/products';
 import { useTicker } from '../hooks/useTicker';
@@ -10,7 +10,7 @@ interface ProductListViewProps {
 
 const ALL_SYMBOLS = PRODUCTS.map(p => p.symbol);
 
-export function ProductListView({ onSelectProduct }: ProductListViewProps) {
+function ProductListViewInner({ onSelectProduct }: ProductListViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
@@ -83,8 +83,8 @@ export function ProductListView({ onSelectProduct }: ProductListViewProps) {
               product={product}
               ticker={tickers.get(product.symbol)}
               isFavorite={isFavorite(product.symbol)}
-              onToggleFavorite={() => toggleFavorite(product.symbol)}
-              onClick={() => onSelectProduct(product.symbol)}
+              onToggleFavorite={toggleFavorite}
+              onSelectProduct={onSelectProduct}
               variant="card"
             />
           ))
@@ -117,8 +117,8 @@ export function ProductListView({ onSelectProduct }: ProductListViewProps) {
                   product={product}
                   ticker={tickers.get(product.symbol)}
                   isFavorite={isFavorite(product.symbol)}
-                  onToggleFavorite={() => toggleFavorite(product.symbol)}
-                  onClick={() => onSelectProduct(product.symbol)}
+                  onToggleFavorite={toggleFavorite}
+                  onSelectProduct={onSelectProduct}
                 />
               ))
             ) : (
@@ -136,3 +136,5 @@ export function ProductListView({ onSelectProduct }: ProductListViewProps) {
     </div>
   );
 }
+
+export const ProductListView = memo(ProductListViewInner);

@@ -11,9 +11,9 @@ interface ProcessedOrderbook {
 
 export function useOrderbook(symbol: string | null) {
   const [orderbook, setOrderbook] = useState<ProcessedOrderbook | null>(() => symbol ? null : null);
-  
   const pendingDataRef = useRef<OrderbookData | null>(null);
   const rafIdRef = useRef<number | null>(null);
+  const mountedRef = useRef(true);
 
   const processOrderbook = useCallback((data: OrderbookData): ProcessedOrderbook => {
     const processBids = (bids: [string, string][]): OrderbookLevel[] => {
@@ -42,10 +42,12 @@ export function useOrderbook(symbol: string | null) {
   }, []);
 
   const flushOrderbook = useCallback(() => {
-    if (pendingDataRef.current) {
-      setOrderbook(processOrderbook(pendingDataRef.current));
-      pendingDataRef.current = null;
+    if (!pendingDataRef.current || !mountedRef.current) {
+      rafIdRef.current = null;
+      return;
     }
+    setOrderbook(processOrderbook(pendingDataRef.current));
+    pendingDataRef.current = null;
     rafIdRef.current = null;
   }, [processOrderbook]);
 
@@ -72,6 +74,7 @@ export function useOrderbook(symbol: string | null) {
     if (!symbol) {
       return;
     }
+    mountedRef.current = true;
 
     websocketService.subscribe([
       { name: 'l2_orderbook', symbols: [symbol] }
@@ -84,6 +87,7 @@ export function useOrderbook(symbol: string | null) {
     });
 
     return () => {
+      mountedRef.current = false;
       setOrderbook(null);
       unsubscribe();
       websocketService.unsubscribe([

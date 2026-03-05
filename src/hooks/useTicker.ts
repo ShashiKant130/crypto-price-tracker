@@ -5,10 +5,10 @@ import { trackWebSocketUpdate } from './usePerformanceMonitor';
 
 export function useTicker(symbols: string[]) {
   const [tickers, setTickers] = useState<Map<string, TickerData>>(new Map());
-  
   const pendingUpdatesRef = useRef<Map<string, TickerData>>(new Map());
   const rafIdRef = useRef<number | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(true);
 
   const flushUpdates = useCallback(() => {
     const updates = pendingUpdatesRef.current;
@@ -28,6 +28,7 @@ export function useTicker(symbols: string[]) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
+    if (!mountedRef.current) return;
 
     setTickers(prev => {
       const next = new Map(prev);
@@ -63,11 +64,12 @@ export function useTicker(symbols: string[]) {
     };
 
     rafIdRef.current = requestAnimationFrame(flush);
-    timeoutRef.current = setTimeout(flush, 16); // ~1 frame fallback if RAF is throttled
+    timeoutRef.current = setTimeout(flush, 16);
   }, [flushUpdates]);
 
   useEffect(() => {
     if (symbols.length === 0) return;
+    mountedRef.current = true;
 
     websocketService.subscribe([
       { name: 'v2/ticker', symbols }
@@ -80,6 +82,7 @@ export function useTicker(symbols: string[]) {
     });
 
     return () => {
+      mountedRef.current = false;
       unsubscribe();
       websocketService.unsubscribe([
         { name: 'v2/ticker', symbols }

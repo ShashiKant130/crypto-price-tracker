@@ -1,6 +1,6 @@
 # Crypto Price Tracker
 
-Real-time cryptocurrency price tracker built with React, TypeScript, Tailwind CSS and Vite. Displays live market data (ticker, orderbook, trades) via WebSocket against a mock server.
+Real-time cryptocurrency price tracker built with React, TypeScript, and Tailwind CSS. Displays live market data (ticker, orderbook, trades) via WebSocket against a mock server.
 
 ---
 
@@ -13,7 +13,7 @@ Real-time cryptocurrency price tracker built with React, TypeScript, Tailwind CS
 ```bash
 cd crypto-price-tracker
 npm install
-npm run dev
+npm start
 ```
 
 App runs at **http://localhost:5173**.
@@ -57,10 +57,8 @@ cd crypto-price-tracker && npm install && npm start
 
 ## If I had more time
 
-- Virtualize long trade/orderbook lists (e.g. `react-window`) for 1000+ rows.
-- Web Worker for heavy processing (e.g. orderbook aggregation) so the main thread stays smooth.
-- Price alerts (e.g. “notify when BTC > 65k”) with optional sound or browser notifications.
-- Keyboard shortcuts (e.g. Esc to go back, arrow keys in list).
-- Clearer loading skeletons and error states when the server is down or reconnecting.
-- Show “last updated timestamp” under ticker or in the list row, using the latest message timestamp and a simple relative-time update (e.g. every 10s or on new data).
-- Click column header (e.g. Last price, 24h change, Volume) to sort ascending/descending; persist sort in component state.
+- **Testing** – Unit tests for hooks and formatters (Vitest), component tests (React Testing Library), and E2E with a scriptable WebSocket mock (Playwright).
+- **Real API** – Swap the mock for a live feed (e.g. Delta Exchange), add auth and error handling for rate limits and reconnects.
+- **Charts** – Candlestick/OHLC view using the existing `candlestick_*` channels and a small charting library.
+- **Performance** – Virtualize long trade/orderbook lists (e.g. `react-window`), optional Web Worker for heavy processing, and consider binary/compressed WebSocket messages at very high frequency.
+- **UX** – Price alerts, optional sound for trades, keyboard shortcuts, and clearer loading/error states when the server is down or reconnecting.

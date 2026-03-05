@@ -1,3 +1,4 @@
+import { useMemo, memo } from 'react';
 import { useTicker } from '../hooks/useTicker';
 import { useOrderbook } from '../hooks/useOrderbook';
 import { useTrades } from '../hooks/useTrades';
@@ -12,9 +13,10 @@ interface ProductDetailViewProps {
   onBack: () => void;
 }
 
-export function ProductDetailView({ symbol, onBack }: ProductDetailViewProps) {
+function ProductDetailViewInner({ symbol, onBack }: ProductDetailViewProps) {
   const product = PRODUCT_MAP.get(symbol);
-  const tickers = useTicker([symbol]);
+  const symbolList = useMemo(() => [symbol], [symbol]);
+  const tickers = useTicker(symbolList);
   const ticker = tickers.get(symbol);
   const orderbook = useOrderbook(symbol);
   const trades = useTrades(symbol);
@@ -142,3 +144,5 @@ export function ProductDetailView({ symbol, onBack }: ProductDetailViewProps) {
     </div>
   );
 }
+
+export const ProductDetailView = memo(ProductDetailViewInner);

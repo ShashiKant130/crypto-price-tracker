@@ -1,7 +1,13 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { intervalConfigService, type UpdateFrequency } from '../services/intervalConfig';
 
-export function UpdateFrequencyControl() {
+const FREQUENCIES: Array<{ value: UpdateFrequency; label: string; description: string; color: string }> = [
+  { value: 'normal', label: 'Normal', description: '200-500ms', color: 'bg-blue-500 hover:bg-blue-600' },
+  { value: 'fast', label: 'Fast', description: '100-200ms', color: 'bg-orange-500 hover:bg-orange-600' },
+  { value: 'extreme', label: 'Extreme', description: '50-100ms', color: 'bg-red-500 hover:bg-red-600' },
+];
+
+function UpdateFrequencyControlInner() {
   const [frequency, setFrequency] = useState<UpdateFrequency>('normal');
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,27 +26,6 @@ export function UpdateFrequencyControl() {
       setIsUpdating(false);
     }
   };
-
-  const frequencies: Array<{ value: UpdateFrequency; label: string; description: string; color: string }> = [
-    { 
-      value: 'normal', 
-      label: 'Normal', 
-      description: '10-500ms updates',
-      color: 'bg-blue-500 hover:bg-blue-600'
-    },
-    { 
-      value: 'fast', 
-      label: 'Fast', 
-      description: '5-200ms updates',
-      color: 'bg-orange-500 hover:bg-orange-600'
-    },
-    { 
-      value: 'extreme', 
-      label: 'Extreme', 
-      description: '1-100ms updates',
-      color: 'bg-red-500 hover:bg-red-600'
-    },
-  ];
 
   const getUpdateIndicator = () => {
     const pulseSpeed = 
@@ -76,7 +61,7 @@ export function UpdateFrequencyControl() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-3 sm:mb-4">
-        {frequencies.map((freq) => (
+        {FREQUENCIES.map((freq) => (
           <button
             key={freq.value}
             onClick={() => handleFrequencyChange(freq.value)}
@@ -117,3 +102,5 @@ export function UpdateFrequencyControl() {
     </div>
   );
 }
+
+export const UpdateFrequencyControl = memo(UpdateFrequencyControlInner);

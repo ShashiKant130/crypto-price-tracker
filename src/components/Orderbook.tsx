@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import type { OrderbookLevel } from '../types/websocket';
 import { formatPrice, getPriceDecimals } from '../utils/formatters';
 
@@ -8,7 +8,7 @@ interface OrderbookProps {
   symbol: string;
 }
 
-export function Orderbook({ bids, asks, symbol }: OrderbookProps) {
+function OrderbookInner({ bids, asks, symbol }: OrderbookProps) {
   const decimals = getPriceDecimals(symbol);
 
   const maxBidTotal = useMemo(() => 
@@ -21,17 +21,20 @@ export function Orderbook({ bids, asks, symbol }: OrderbookProps) {
     [asks]
   );
 
+  const asksReversed = useMemo(() => asks.slice().reverse(), [asks]);
+
   const renderLevel = (
     level: OrderbookLevel,
     maxTotal: number,
-    side: 'bid' | 'ask'
+    side: 'bid' | 'ask',
+    index: number
   ) => {
     const percentage = ((level.total || 0) / maxTotal) * 100;
     const bgColor = side === 'bid' ? 'bg-emerald-50' : 'bg-red-50';
 
     return (
       <div
-        key={`${side}-${level.price}`}
+        key={`${side}-${index}`}
         className="relative grid grid-cols-3 gap-2 sm:gap-4 px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-mono hover:bg-zinc-50 transition-colors"
       >
         <div
@@ -71,8 +74,8 @@ export function Orderbook({ bids, asks, symbol }: OrderbookProps) {
 
       <div className="flex-1 overflow-hidden flex flex-col">
         <div className="flex-1 overflow-y-auto scrollbar-thin">
-          {asks.slice().reverse().map(ask => 
-            renderLevel(ask, maxAskTotal, 'ask')
+          {asksReversed.map((ask, i) => 
+            renderLevel(ask, maxAskTotal, 'ask', i)
           )}
         </div>
 
@@ -83,11 +86,13 @@ export function Orderbook({ bids, asks, symbol }: OrderbookProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto scrollbar-thin">
-          {bids.map(bid => 
-            renderLevel(bid, maxBidTotal, 'bid')
+          {bids.map((bid, i) => 
+            renderLevel(bid, maxBidTotal, 'bid', i)
           )}
         </div>
       </div>
     </div>
   );
 }
+
+export const Orderbook = memo(OrderbookInner);

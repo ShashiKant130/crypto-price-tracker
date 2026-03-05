@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { formatPrice, formatPercentage, formatVolume, getPriceDecimals } from '../utils/formatters';
 import type { TickerData } from '../types/websocket';
 import type { ProductConfig } from '../config/products';
@@ -6,29 +7,32 @@ interface ProductRowProps {
   product: ProductConfig;
   ticker?: TickerData;
   isFavorite: boolean;
-  onToggleFavorite: () => void;
-  onClick: () => void;
+  onToggleFavorite: (symbol: string) => void;
+  onSelectProduct: (symbol: string) => void;
   variant?: 'table' | 'card';
 }
 
-export function ProductRow({ product, ticker, isFavorite, onToggleFavorite, onClick, variant = 'table' }: ProductRowProps) {
+function ProductRowInner({ product, ticker, isFavorite, onToggleFavorite, onSelectProduct, variant = 'table' }: ProductRowProps) {
   const decimals = getPriceDecimals(product.symbol);
   const lastPrice = ticker?.last_price ? parseFloat(ticker.last_price) : null;
   const change24h = ticker?.change_24h ?? 0;
   const volume24h = ticker?.volume_24h ?? 0;
 
+  const handleClick = useCallback(() => onSelectProduct(product.symbol), [product.symbol, onSelectProduct]);
+  const handleToggleFavorite = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleFavorite(product.symbol);
+  }, [product.symbol, onToggleFavorite]);
+
   if (variant === 'card') {
     return (
       <div
         className="p-4 active:bg-zinc-50 transition-colors cursor-pointer flex items-center justify-between gap-3"
-        onClick={onClick}
+        onClick={handleClick}
       >
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleFavorite();
-            }}
+            onClick={handleToggleFavorite}
             className="text-lg shrink-0"
             aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           >
@@ -59,14 +63,11 @@ export function ProductRow({ product, ticker, isFavorite, onToggleFavorite, onCl
   return (
     <tr 
       className="hover:bg-zinc-50 transition-colors cursor-pointer"
-      onClick={onClick}
+      onClick={handleClick}
     >
       <td className="px-4 py-4 text-center">
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFavorite();
-          }}
+          onClick={handleToggleFavorite}
           className="text-xl hover:scale-110 transition-transform"
           aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         >
@@ -109,3 +110,5 @@ export function ProductRow({ product, ticker, isFavorite, onToggleFavorite, onCl
     </tr>
   );
 }
+
+export const ProductRow = memo(ProductRowInner);

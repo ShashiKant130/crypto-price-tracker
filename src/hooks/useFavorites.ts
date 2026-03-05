@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const FAVORITES_KEY = 'crypto-tracker-favorites';
 
@@ -20,7 +20,7 @@ export function useFavorites() {
     }
   }, [favorites]);
 
-  const toggleFavorite = (symbol: string) => {
+  const toggleFavorite = useCallback((symbol: string) => {
     setFavorites(prev => {
       const next = new Set(prev);
       if (next.has(symbol)) {
@@ -30,7 +30,7 @@ export function useFavorites() {
       }
       return next;
     });
-  };
+  }, []);
 
   const isFavorite = (symbol: string) => favorites.has(symbol);
 

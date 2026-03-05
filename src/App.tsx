@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useWebSocketConnection } from './hooks/useWebSocketConnection';
 import { ConnectionStatus } from './components/ConnectionStatus';
 import { ProductListView } from './components/ProductListView';
@@ -10,15 +10,15 @@ function App() {
   const [view, setView] = useState<'list' | 'detail'>('list');
   const { status } = useWebSocketConnection();
 
-  const handleSelectProduct = (symbol: string) => {
+  const handleSelectProduct = useCallback((symbol: string) => {
     setSelectedProduct(symbol);
     setView('detail');
-  };
+  }, []);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     setView('list');
     setSelectedProduct(null);
-  };
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50">

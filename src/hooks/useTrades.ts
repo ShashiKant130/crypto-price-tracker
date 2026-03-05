@@ -13,10 +13,9 @@ const MAX_TRADES = 30;
 
 export function useTrades(symbol: string | null) {
   const [trades, setTrades] = useState<EnhancedTrade[]>([]);
-  const newTradeTimeouts = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-  
   const pendingTradesRef = useRef<EnhancedTrade[]>([]);
   const rafIdRef = useRef<number | null>(null);
+  const mountedRef = useRef(true);
 
   const flushTrades = useCallback(() => {
     const newTrades = pendingTradesRef.current;
@@ -24,23 +23,12 @@ export function useTrades(symbol: string | null) {
       rafIdRef.current = null;
       return;
     }
+    if (!mountedRef.current) return;
 
     setTrades(prev => {
-      const updated = [...newTrades, ...prev].slice(0, MAX_TRADES);
-      return updated;
-    });
-
-    newTrades.forEach(trade => {
-      const timeout = setTimeout(() => {
-        setTrades(prev => 
-          prev.map(t => 
-            t.id === trade.id ? { ...t, isNew: false } : t
-          )
-        );
-        newTradeTimeouts.current.delete(trade.id);
-      }, 1000);
-
-      newTradeTimeouts.current.set(trade.id, timeout);
+      const withNewFlag = newTrades.map(t => ({ ...t, isNew: true }));
+      const existingNoNew = prev.map(t => ({ ...t, isNew: false }));
+      return [...withNewFlag, ...existingNoNew].slice(0, MAX_TRADES);
     });
 
     pendingTradesRef.current = [];
@@ -66,13 +54,14 @@ export function useTrades(symbol: string | null) {
     };
 
     rafIdRef.current = requestAnimationFrame(flush);
-    timeoutRef.current = setTimeout(flush, 50);
+    timeoutRef.current = setTimeout(flush, 100);
   }, [flushTrades]);
 
   useEffect(() => {
     if (!symbol) {
       return;
     }
+    mountedRef.current = true;
 
     websocketService.subscribe([
       { name: 'all_trades', symbols: [symbol] }
@@ -85,6 +74,7 @@ export function useTrades(symbol: string | null) {
     });
 
     return () => {
+      mountedRef.current = false;
       setTrades([]);
       unsubscribe();
       websocketService.unsubscribe([
@@ -94,9 +84,6 @@ export function useTrades(symbol: string | null) {
       if (timeoutRef.current != null) clearTimeout(timeoutRef.current);
       rafIdRef.current = timeoutRef.current = null;
       pendingTradesRef.current = [];
-      const timeouts = newTradeTimeouts.current;
-      timeouts.forEach(timeout => clearTimeout(timeout));
-      timeouts.clear();
     };
   }, [symbol, addTrade]);
 
